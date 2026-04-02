@@ -29,23 +29,23 @@ from scout.models import (
 
 class TestEnums:
     def test_platform_values(self) -> None:
-        assert Platform.UPWORK == "upwork"
-        assert Platform.GUN_IO == "gun_io"
+        assert Platform.UPWORK.value == "upwork"
+        assert Platform.GUN_IO.value == "gun_io"
         assert len(Platform) == 8
 
     def test_category_values(self) -> None:
-        assert Category.BUG_FIX == "bug_fix"
-        assert Category.OTHER == "other"
+        assert Category.BUG_FIX.value == "bug_fix"
+        assert Category.OTHER.value == "other"
         assert len(Category) == 8
 
     def test_parse_confidence_values(self) -> None:
-        assert ParseConfidence.HIGH == "high"
-        assert ParseConfidence.LOW == "low"
+        assert ParseConfidence.HIGH.value == "high"
+        assert ParseConfidence.LOW.value == "low"
         assert len(ParseConfidence) == 3
 
     def test_response_sla_values(self) -> None:
-        assert ResponseSLA.IMMEDIATE_30MIN == "immediate_30min"
-        assert ResponseSLA.SKIP == "skip"
+        assert ResponseSLA.IMMEDIATE_30MIN.value == "immediate_30min"
+        assert ResponseSLA.SKIP.value == "skip"
         assert len(ResponseSLA) == 5
 
     def test_enum_json_serialization(self) -> None:
