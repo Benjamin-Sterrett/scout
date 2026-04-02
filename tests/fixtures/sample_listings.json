@@ -1,0 +1,181 @@
+[
+  {
+    "id": "upwork_bug_fix_with_error_log",
+    "description": "Upwork bug fix with full error log — HIGH confidence, scores well",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Fix TypeError in checkout flow\n\nOur Stripe checkout is throwing a TypeError on line 42 of checkout.js when the cart has more than 10 items. We can reproduce it 100% of the time. The error is: TypeError: Cannot read property 'price' of undefined. Repo access will be provided.\n\nBudget: $350\nSkills: JavaScript, React, Stripe\nClient spent $4,500\nHire rate: 78%",
+      "source_url": "https://www.upwork.com/jobs/~01abc123"
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 350.0,
+      "budget_inferred": false,
+      "category": "bug_fix",
+      "tech_keywords_includes": ["javascript", "react", "stripe"],
+      "red_flags": [],
+      "urgency_signals": []
+    }
+  },
+  {
+    "id": "upwork_mvp_build_my_app",
+    "description": "Upwork MVP listing — HIGH confidence (well-structured), but MVP gate rejects it",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Build my app like Uber for dog walkers\n\nI have an idea for a two-sided marketplace. I need someone to build my app from scratch. It should have user accounts, bookings, payments, ratings, and a mobile app. Looking for a full-stack developer.\n\nBudget: $2,000\nSkills: React Native, Node.js, PostgreSQL\nClient spent $1,200\nHire rate: 65%",
+      "source_url": null
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 2000.0,
+      "budget_inferred": false,
+      "category": "api_integration",
+      "red_flags_includes": ["mvp/build-from-scratch"],
+      "urgency_signals": []
+    }
+  },
+  {
+    "id": "upwork_api_integration_full",
+    "description": "Upwork API integration with full client history — HIGH confidence",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Integrate Stripe and SendGrid into our Next.js SaaS app\n\nWe need a developer to connect Stripe payment processing (subscription billing) and SendGrid transactional emails to our existing Next.js application. The webhook endpoints already exist but are not functional. API keys and staging environment will be provided.\n\nBudget: $600\nSkills: Next.js, Stripe, SendGrid, API, webhook\nClient spent $12,000\nHire rate: 85%",
+      "source_url": "https://www.upwork.com/jobs/~02def456"
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 600.0,
+      "budget_inferred": false,
+      "category": "api_integration",
+      "tech_keywords_includes": ["next.js", "stripe", "webhook"],
+      "red_flags": [],
+      "client_spend_history": 12000.0,
+      "client_hire_rate": 85.0
+    }
+  },
+  {
+    "id": "reddit_hiring_api_integration",
+    "description": "Reddit [HIRING] API integration — MEDIUM confidence (less structured)",
+    "raw": {
+      "platform": "reddit",
+      "raw_text": "[HIRING] Need Python developer to build API integration between Airtable and Slack\n\nLooking for someone to connect our Airtable base to Slack using their respective APIs. When a new row is added in Airtable with status 'Ready', a message should be posted to our #team-updates channel. Budget is around $400-500. DM me with examples of similar work.",
+      "source_url": "https://www.reddit.com/r/forhire/comments/abc123"
+    },
+    "expected": {
+      "platform": "reddit",
+      "parse_confidence": "medium",
+      "budget_inferred": true,
+      "category": "api_integration",
+      "tech_keywords_includes": ["python", "api", "airtable"],
+      "red_flags": [],
+      "urgency_signals": []
+    }
+  },
+  {
+    "id": "reddit_vague_one_liner",
+    "description": "Reddit vague one-liner — LOW confidence, minimal signals",
+    "raw": {
+      "platform": "reddit",
+      "raw_text": "[HIRING] need help with website",
+      "source_url": null
+    },
+    "expected": {
+      "platform": "reddit",
+      "parse_confidence": "low",
+      "budget": null,
+      "category": null,
+      "tech_keywords": [],
+      "red_flags": [],
+      "urgency_signals": []
+    }
+  },
+  {
+    "id": "generic_urgent_listing",
+    "description": "Generic pasted listing with ASAP urgency signals — MEDIUM confidence",
+    "raw": {
+      "platform": null,
+      "raw_text": "URGENT: Fix broken contact form on WordPress site\n\nOur contact form stopped sending emails after a plugin update. We need this fixed ASAP — we're losing leads. The site is built with WordPress and uses Contact Form 7 with SMTP. We think it's a plugin conflict. Budget is $200.",
+      "source_url": null
+    },
+    "expected": {
+      "parse_confidence": "medium",
+      "budget": 200.0,
+      "category": "bug_fix",
+      "tech_keywords_includes": ["wordpress"],
+      "red_flags": [],
+      "urgency_signals_includes": ["asap"]
+    }
+  },
+  {
+    "id": "upwork_equity_red_flags",
+    "description": "Equity/revenue share listing — red flags fire regardless of confidence",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Build MVP for my startup — equity and revenue share available\n\nI'm looking for a co-founder / technical partner to help build our platform. We offer equity compensation plus a percentage of revenue once we reach profitability. Great opportunity to get in early.\n\nBudget: $500\nSkills: React, Node.js\nClient spent $0\nHire rate: 20%",
+      "source_url": null
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 500.0,
+      "red_flags_includes": ["equity/revenue-share", "mvp/build-from-scratch"]
+    }
+  },
+  {
+    "id": "upwork_free_test_work",
+    "description": "Free test project demand — free-work red flag fires",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Python automation script for data processing\n\nI need a Python automation script to process CSV files and generate reports. Before hiring, I require a test project to evaluate your skills. Please complete a sample task first. Ongoing work available after the test.\n\nBudget: $300\nSkills: Python, automation\nClient spent $800\nHire rate: 55%",
+      "source_url": null
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 300.0,
+      "category": "automation_script",
+      "tech_keywords_includes": ["python", "automation"],
+      "red_flags_includes": ["free-test-work"]
+    }
+  },
+  {
+    "id": "upwork_web_scraping_clear_deliverables",
+    "description": "Web scraping with clear deliverables — HIGH confidence",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Scrape product data from 5 e-commerce sites\n\nI need a Python scraper to collect product names, prices, SKUs, and images from 5 competitor websites. Approximately 50,000 products total. Output as CSV. Sites use Cloudflare but no CAPTCHA. Must handle pagination and rate limiting.\n\nBudget: $450\nSkills: Python, scraping, data extraction\nClient spent $3,200\nHire rate: 72%",
+      "source_url": "https://www.upwork.com/jobs/~03ghi789"
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 450.0,
+      "budget_inferred": false,
+      "category": "web_scraping",
+      "tech_keywords_includes": ["python", "scraping"],
+      "red_flags": [],
+      "urgency_signals": []
+    }
+  },
+  {
+    "id": "upwork_budget_range",
+    "description": "Budget range '$500-1000' — tests range midpoint parsing",
+    "raw": {
+      "platform": "upwork",
+      "raw_text": "Migrate WordPress site to Next.js\n\nWe need our existing WordPress blog migrated to a Next.js application. About 200 posts, custom theme, keep SEO intact. Looking for someone with migration experience.\n\nBudget: $500-1000\nSkills: Next.js, WordPress, migration\nClient spent $2,100\nHire rate: 68%",
+      "source_url": null
+    },
+    "expected": {
+      "platform": "upwork",
+      "parse_confidence": "high",
+      "budget": 750.0,
+      "budget_inferred": true,
+      "category": "migration",
+      "tech_keywords_includes": ["next.js", "wordpress"],
+      "red_flags": []
+    }
+  }
+]
