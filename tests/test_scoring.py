@@ -395,7 +395,7 @@ class TestScoreJobFlow:
         for name, cfg in DIMENSION_ANCHORS.items():
             anchors = cfg["anchors"]
             assert isinstance(anchors, dict), f"{name} anchors not a dict"
-            assert set(anchors.keys()) == {1, 2, 3, 4, 5}, (  # type: ignore[union-attr]
+            assert set(anchors.keys()) == {1, 2, 3, 4, 5}, (
                 f"{name} missing anchor levels"
             )
 
