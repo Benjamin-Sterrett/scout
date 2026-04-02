@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production*
+
+# Build
+dist/
+build/
+
+# Testing
+/coverage
+/test-results/
+
+# Workflow artifacts
+.code-review-evidence.md
+.verification-evidence.md
+.debug-report.md
+.implementation-plan.md
+.dw-state.json
+
+# IDE
+.idea/
+.vscode/
+
+# Worktrees
+.trees/
+
+# Claude session artifacts
+.claude/session-changes.log
+
+# OS
+.DS_Store
+Thumbs.db
