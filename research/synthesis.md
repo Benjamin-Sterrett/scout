@@ -418,16 +418,16 @@ Upwork: "Using AI to assist with content creation is permitted as long as you ma
 
 ---
 
-## Scout Scoring Model v1 (Synthesized)
+## Scout Scoring Model v2 (Synthesized + Hardened)
 
-Based on all findings, here's the recommended scoring model:
+Based on all findings + failure point analysis.
 
 ### Hard Gates (reject if ANY fail)
 
 | Gate | Threshold | Rationale |
 |------|-----------|-----------|
 | Budget | < $150 | Below = bad clients (all sources) |
-| Effort | > 3/5 | Too complex for AI arbitrage |
+| Effort | > 3/5 (> 6 hours) | Too complex for AI arbitrage |
 | Clarity | < 3/5 | Can't scope = can't ticket |
 | Fit | < 3/5 | Outside dev-workflow capabilities |
 | Payment verified | No | Chargeback/non-payment risk |
@@ -435,28 +435,124 @@ Based on all findings, here's the recommended scoring model:
 | Equity/revenue share | Always reject | Not real money |
 | Free test work | Always reject | Red flag for exploitation |
 
-### Scoring Dimensions (1-5 each)
+### Scoring Formula
 
 ```
-Score = (Clarity + Fit + Price + Urgency) - (Effort + Risk + Client_Risk)
+Score = (Clarity*1.5 + Fit*1.5 + Price + Urgency)
+      - (Effort + Risk + Client_Risk + Technical_Risk)
+      + Bonuses
 ```
 
-| Dimension | 1 (worst) | 5 (best) | Weight |
-|-----------|-----------|----------|--------|
-| **Clarity** | "Make it better" | Error log + screenshot + repo access | 1.5x |
-| **Fit** | Unknown stack, design-heavy | Bug fix in React/Python/Node | 1.5x |
-| **Price** | Below credibility floor | Speed premium + well-funded | 1.0x |
-| **Urgency** | "No rush" | "Today" / "ASAP" + budget to match | 1.0x |
-| **Effort** | Multi-week, unclear scope | Known solution, < 4 hours | 1.0x |
-| **Risk** | No escrow, first-time client, vague | Funded milestone, repeat client, clear SOW | 1.0x |
-| **Client_Risk** | Low hire rate, disputes, $4/hr avg | Verified, $1K+ spent, 80%+ hire rate | 1.0x |
+### Dimension Anchors (eliminates subjectivity)
 
-### Bonus signals (add to score)
+**Clarity (1-5) — weight 1.5x**
 
-- "Urgent" / "ASAP" / "today" + budget > $200: +2
-- Technical keywords (webhook, API, scraping) + clear deliverable: +1
-- Repeat job poster: +1
-- < 10 existing proposals: +1 (less competition)
+| Score | Anchor Definition | Example |
+|-------|-------------------|---------|
+| 5 | Error log + reproduction steps + repo access + expected behavior stated | "TypeError on line 42 of checkout.js when cart has >10 items. Repo: github.com/..." |
+| 4 | Clear problem + some context but missing reproduction steps | "Stripe webhook stopped working after we updated to v3. Here's our endpoint code." |
+| 3 | Clear problem but missing reproduction steps or environment details | "Our contact form isn't sending emails. Built with Next.js." |
+| 2 | Vague problem with some technical keywords | "Something is wrong with our API, it's slow sometimes" |
+| 1 | No specifics, subjective, or contradictory | "Make it better" / "Fix everything" / "It just doesn't feel right" |
+
+**Effort (1-5) — weight 1.0x**
+
+| Score | Time Anchor | Example |
+|-------|-------------|---------|
+| 1 | < 1 hour | CSS fix, typo, config change, known error pattern |
+| 2 | 1-3 hours | Single bug with clear reproduction, simple API integration |
+| 3 | 3-6 hours | Multi-file bug, API integration with auth, basic scraper |
+| **GATE** | **> 6 hours = reject** | |
+| 4 | 1-2 days | Complex integration, migration with testing, multi-page site |
+| 5 | Multi-day / unknown | Full feature build, unclear scope, "build my app" |
+
+**Fit (1-5) — weight 1.5x**
+
+| Score | Anchor Definition |
+|-------|-------------------|
+| 5 | Bug fix or automation in React/Next.js/Python/Node — your core stack |
+| 4 | API integration, web scraping, or landing page in familiar tech |
+| 3 | Known framework but unfamiliar specific library or service |
+| 2 | Partially outside stack (e.g., mobile, DevOps, ML pipeline) |
+| 1 | Completely outside lane (design, iOS native, blockchain, game dev) |
+
+**Price (1-5) — weight 1.0x**
+
+| Score | Anchor Definition |
+|-------|-------------------|
+| 5 | > $500 fixed + speed premium signal ("urgent", "today") |
+| 4 | $300-500 fixed, reasonable for scope |
+| 3 | $150-300, tight but acceptable if effort is low |
+| 2 | $75-150, only worth it for < 1 hour / portfolio building |
+| 1 | < $75 or "make me an offer" with no budget signal |
+
+**Urgency (1-5) — weight 1.0x**
+
+| Score | Anchor Definition |
+|-------|-------------------|
+| 5 | "Today" / "ASAP" + funded budget + clear deliverable |
+| 4 | "This week" + reasonable budget |
+| 3 | "Soon" / no timeline stated but active posting |
+| 2 | "No rush" / "when you can" |
+| 1 | No urgency + low budget (signals tire-kicker) |
+
+**Risk (1-5, inverted: 1 = safest) — weight 1.0x**
+
+| Score | Anchor Definition |
+|-------|-------------------|
+| 1 | Funded escrow, clear SOW, repeat client, bounded scope |
+| 2 | Funded escrow, new client but verified, clear deliverable |
+| 3 | Verified client, first interaction, some scope ambiguity |
+| 4 | Unverified or new client, vague success criteria, no milestone structure |
+| 5 | No escrow, off-platform payment, "we'll figure out scope as we go" |
+
+**Client_Risk (1-5, inverted: 1 = safest) — weight 1.0x**
+
+| Score | Anchor Definition |
+|-------|-------------------|
+| 1 | $10K+ spent, 90%+ hire rate, 4.8+ rating, repeat poster |
+| 2 | $1K-10K spent, 70%+ hire rate, verified payment |
+| 3 | $500-1K spent, 50-70% hire rate, some history |
+| 4 | < $500 spent, < 50% hire rate, first-time client |
+| 5 | No history, no verified payment, dispute history visible |
+
+**Technical_Risk (1-5, inverted: 1 = safest) — weight 1.0x** *(new dimension)*
+
+| Score | Anchor Definition | Example |
+|-------|-------------------|---------|
+| 1 | Isolated, no production access needed, easily reversible | Fix CSS, update copy, static site change |
+| 2 | Limited blast radius, staging available, testable | API endpoint fix with test suite, scraper on public data |
+| 3 | Touches production but sandboxable, moderate blast radius | Webhook fix, form handler, payment flow change |
+| 4 | Production database access, no staging, hard to reverse | DB migration, data cleanup on live system |
+| 5 | Admin access to critical systems, destructive potential | Production DB writes, auth system changes, infra modifications |
+
+### Bonuses (add to final score)
+
+| Signal | Bonus | Rationale |
+|--------|-------|-----------|
+| "Urgent"/"ASAP"/"today" + budget > $200 | +2 | Speed premium opportunity |
+| Technical keywords + clear deliverable | +1 | Scoping confidence |
+| Repeat job poster | +1 | Relationship potential |
+| < 10 existing proposals | +1 | Less competition, higher win rate |
+| **Reusable asset created** | **+2** | Script/template/workflow reusable across future jobs. Compounds over time. |
+| **Near-identical past project** | **+2** | Proof proximity — fastest execution, lowest risk |
+
+### Response SLA (score-driven)
+
+| Score Range | Response SLA | Action |
+|-------------|-------------|--------|
+| >= 12 | **Within 30 minutes** | Drop everything. This is a high-margin, low-risk job. |
+| 8-11 | Within 60 minutes | Strong candidate. Prioritize. |
+| 5-7 | Within 4 hours | Decent but not urgent. Batch with daily review. |
+| 3-4 | Next day | Only if pipeline is thin. |
+| < 3 | Skip | Below threshold. Don't waste a proposal. |
+
+### Score interpretation
+
+- **Theoretical max:** ~28 (all 5s with weights + bonuses)
+- **Realistic "great job":** 12-18
+- **Minimum actionable:** 5
+- **Gate failures override score** — a job scoring 15 but with Effort > 3 still gets rejected
 
 ---
 
