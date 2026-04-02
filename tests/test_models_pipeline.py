@@ -16,6 +16,7 @@ from scout.models import (
     Category,
     DimensionScore,
     GateResult,
+    GateVerdict,
     NormalizedTicket,
     ParseConfidence,
     ParsedListing,
@@ -46,8 +47,8 @@ class TestScoredListing:
         return ScoredListing(
             parsed_listing=parsed,
             gate_results=[
-                GateResult(gate="budget", passed=True, reason=">= $150"),
-                GateResult(gate="effort", passed=True, reason="<= 3"),
+                GateResult(gate="budget", verdict=GateVerdict.PASS, reason=">= $150"),
+                GateResult(gate="effort", verdict=GateVerdict.PASS, reason="<= 3"),
             ],
             dimension_scores=[
                 DimensionScore(
@@ -80,7 +81,7 @@ class TestScoredListing:
         scored = ScoredListing(
             parsed_listing=parsed,
             gate_results=[
-                GateResult(gate="clarity", passed=False, reason="< 3"),
+                GateResult(gate="clarity", verdict=GateVerdict.FAIL, reason="< 3"),
             ],
             dimension_scores=[],
             bonuses=[],
@@ -108,7 +109,9 @@ class TestScoredListing:
             ScoredListing(
                 parsed_listing=parsed,
                 gate_results=[
-                    GateResult(gate="budget", passed=False, reason="< $150"),
+                    GateResult(
+                        gate="budget", verdict=GateVerdict.FAIL, reason="< $150"
+                    ),
                 ],
                 dimension_scores=[],
                 bonuses=[],
@@ -149,7 +152,9 @@ class TestScoredListing:
                 extra_field="nope",  # type: ignore[call-arg]
             )
         with pytest.raises(ValidationError):
-            GateResult(gate="budget", passed=True, reason="ok", extra="nope")  # type: ignore[call-arg]
+            GateResult(
+                gate="budget", verdict=GateVerdict.PASS, reason="ok", extra="nope"
+            )  # type: ignore[call-arg]
         with pytest.raises(ValidationError):
             Bonus(name="urgency", points=2, reason="fast", extra="nope")  # type: ignore[call-arg]
 
@@ -196,7 +201,7 @@ class TestApprovedListing:
         scored = ScoredListing(
             parsed_listing=parsed,
             gate_results=[
-                GateResult(gate="clarity", passed=False, reason="< 3"),
+                GateResult(gate="clarity", verdict=GateVerdict.FAIL, reason="< 3"),
             ],
             dimension_scores=[],
             bonuses=[],
@@ -223,7 +228,7 @@ class TestApprovedListing:
         scored = ScoredListing(
             parsed_listing=parsed,
             gate_results=[
-                GateResult(gate="effort", passed=False, reason="> 3"),
+                GateResult(gate="effort", verdict=GateVerdict.FAIL, reason="> 3"),
             ],
             dimension_scores=[],
             bonuses=[],
@@ -358,7 +363,7 @@ class TestNormalizedTicket:
         scored = ScoredListing(
             parsed_listing=parsed,
             gate_results=[
-                GateResult(gate="budget", passed=True, reason=">= $150"),
+                GateResult(gate="budget", verdict=GateVerdict.PASS, reason=">= $150"),
             ],
             dimension_scores=[
                 DimensionScore(
