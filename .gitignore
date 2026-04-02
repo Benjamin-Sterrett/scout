@@ -13,6 +13,7 @@ __pycache__/
 # Build
 dist/
 build/
+*.egg-info/
 
 # Testing
 /coverage
