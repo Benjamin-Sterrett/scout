@@ -4,7 +4,7 @@ Entry point: ``python -m scout`` (via __main__.py).
 
 Subcommands:
   score     — parse, gate, score, and rank listings from file or stdin
-  normalize — placeholder for Wave 4 ticket normalization
+  normalize — convert Nth scored result to a Linear ticket
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import argparse
 import json
 import re
 import sys
+from pathlib import Path
 from typing import Any
 
 from scout.models import (
@@ -22,7 +23,11 @@ from scout.models import (
     ResponseSLA,
     ScoredListing,
 )
+from scout.normalizer import create_ticket_cli, normalize_to_ticket
 from scout.pipeline import PipelineResult, run_pipeline
+
+# Cached pipeline results saved here after each score run.
+LAST_RESULT_PATH: Path = Path("/tmp/scout_last_result.json")
 
 
 def _split_listings(text: str) -> list[str]:
@@ -230,6 +235,29 @@ def _print_json(result: PipelineResult) -> None:
     print(json.dumps(output, indent=2))
 
 
+def _save_last_result(result: PipelineResult) -> None:
+    """Persist pipeline results for the normalize subcommand.
+
+    Saves ranked + needs_review listings (full Pydantic models) plus
+    pipeline stats so ``normalize`` can display context.
+    """
+    payload: dict[str, Any] = {
+        "ranked": [s.model_dump(mode="json") for s in result.ranked],
+        "needs_review": [s.model_dump(mode="json") for s in result.needs_review],
+        "has_pre_scores": result.has_pre_scores,
+        "stats": {
+            "total_parsed": result.stats.total_parsed,
+            "passed_gates": result.stats.passed_gates,
+            "rejected": result.stats.rejected,
+            "needs_review": result.stats.needs_review,
+            "avg_score": result.stats.avg_score,
+            "duration_ms": result.stats.duration_ms,
+            "confidence_distribution": result.stats.confidence_distribution,
+        },
+    }
+    LAST_RESULT_PATH.write_text(json.dumps(payload, indent=2))
+
+
 def _cmd_score(args: argparse.Namespace) -> None:
     """Execute the 'score' subcommand."""
     if args.top < 1:
@@ -243,6 +271,9 @@ def _cmd_score(args: argparse.Namespace) -> None:
 
     result = run_pipeline(raws, pre_scores_map=None, top_n=args.top)
 
+    # Save results for normalize subcommand
+    _save_last_result(result)
+
     if args.json:
         _print_json(result)
     else:
@@ -250,10 +281,61 @@ def _cmd_score(args: argparse.Namespace) -> None:
 
 
 def _cmd_normalize(args: argparse.Namespace) -> None:
-    """Execute the 'normalize' subcommand (placeholder for Wave 4)."""
-    _ = args  # index argument parsed but unused
-    print("Normalization requires PRJ-371 (Wave 4). Not yet implemented.")
-    sys.exit(0)
+    """Execute the 'normalize' subcommand.
+
+    Reads cached pipeline results from the last ``score`` run, normalizes
+    the Nth ranked result into a Linear ticket, and creates it via CLI.
+    """
+    if not LAST_RESULT_PATH.exists():
+        print(
+            "Error: No cached results found. Run 'scout score' first.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    data = json.loads(LAST_RESULT_PATH.read_text())
+    ranked_dicts: list[dict[str, Any]] = data.get("ranked", [])
+    stats: dict[str, Any] = data.get("stats", {})
+
+    if not ranked_dicts:
+        print("Error: No ranked results in last run.", file=sys.stderr)
+        sys.exit(1)
+
+    idx = args.index
+    if idx < 1 or idx > len(ranked_dicts):
+        print(
+            f"Error: Index {idx} out of range (1-{len(ranked_dicts)}).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    scored = ScoredListing.model_validate(ranked_dicts[idx - 1])
+
+    # Context line from stats (per lead request)
+    total_scored = stats.get("passed_gates", len(ranked_dicts))
+    total_rejected = stats.get("rejected", 0)
+    print(
+        f"Normalizing result #{idx} of {total_scored} scored "
+        f"({total_rejected} rejected)"
+    )
+
+    ticket = normalize_to_ticket(scored)
+    print(f"\nTitle: {ticket.title}")
+    print(f"Priority: {ticket.priority}")
+    print(f"Labels: {', '.join(ticket.labels)}")
+    print(f"\n--- Ticket Description ---\n\n{ticket.description}\n")
+
+    if args.dry_run:
+        print("[dry-run] Skipping Linear ticket creation.")
+        return
+
+    print("Creating Linear ticket...")
+    try:
+        url = create_ticket_cli(ticket)
+        print(f"Created: {url}")
+    except RuntimeError as exc:
+        print(f"Error creating ticket: {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -299,12 +381,18 @@ def build_parser() -> argparse.ArgumentParser:
     # --- normalize ---
     normalize_parser = subparsers.add_parser(
         "normalize",
-        help="Convert Nth result from last run to Linear ticket (Wave 4)",
+        help="Convert Nth scored result from last run to a Linear ticket",
     )
     normalize_parser.add_argument(
         "index",
         type=int,
         help="Index of the result to normalize (1-based)",
+    )
+    normalize_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="Show ticket without creating it in Linear",
     )
     normalize_parser.set_defaults(func=_cmd_normalize)
 
