@@ -140,13 +140,49 @@ class TestScoreSubcommand:
 
 
 class TestNormalizeSubcommand:
-    """Tests for the 'normalize' subcommand (placeholder)."""
+    """Tests for the 'normalize' subcommand."""
 
-    def test_normalize_prints_placeholder(self) -> None:
-        result = _run_cli("normalize", "1")
+    def test_normalize_no_cached_results(self) -> None:
+        """Error when no prior score run exists."""
+        import os
+
+        cache = "/tmp/scout_last_result.json"
+        existed = os.path.exists(cache)
+        if existed:
+            os.rename(cache, cache + ".bak")
+        try:
+            result = _run_cli("normalize", "1")
+            assert result.returncode != 0
+            assert "Run 'scout score' first" in result.stderr
+        finally:
+            if existed:
+                os.rename(cache + ".bak", cache)
+
+    def test_normalize_dry_run_after_score(self) -> None:
+        """Dry-run normalize on cached results from a prior score run."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(_SAMPLE_FILE_CONTENT)
+            f.flush()
+            # Run score first to populate cache
+            score_result = _run_cli("score", "--file", f.name)
+        assert score_result.returncode == 0
+
+        result = _run_cli("normalize", "1", "--dry-run")
         assert result.returncode == 0
-        assert "PRJ-371" in result.stdout
-        assert "Not yet implemented" in result.stdout
+        assert "Normalizing result #1" in result.stdout
+        assert "[dry-run]" in result.stdout
+        assert "## Problem" in result.stdout
+        assert "## Client SOW Clause" in result.stdout
+
+    def test_normalize_index_out_of_range(self) -> None:
+        """Error on index beyond available results."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(_SAMPLE_FILE_CONTENT)
+            f.flush()
+            _run_cli("score", "--file", f.name)
+        result = _run_cli("normalize", "99")
+        assert result.returncode != 0
+        assert "out of range" in result.stderr
 
 
 class TestNoSubcommand:
