@@ -14,6 +14,7 @@ from scout.models import (
     Category,
     DimensionScore,
     GateResult,
+    GateVerdict,
     ParseConfidence,
     ParsedListing,
     Platform,
@@ -108,8 +109,8 @@ class TestScoringTypes:
             )
 
     def test_gate_result(self) -> None:
-        gr = GateResult(gate="budget", passed=False, reason="Below $150")
-        assert gr.passed is False
+        gr = GateResult(gate="budget", verdict=GateVerdict.FAIL, reason="Below $150")
+        assert gr.verdict == GateVerdict.FAIL
 
     def test_bonus(self) -> None:
         b = Bonus(name="urgency", points=2, reason="ASAP + budget > $200")

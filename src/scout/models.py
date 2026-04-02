@@ -69,6 +69,21 @@ class ResponseSLA(StrEnum):
     SKIP = "skip"
 
 
+class GateVerdict(StrEnum):
+    """Tri-state gate outcome.
+
+    PASS  - clearly meets threshold.
+    FAIL  - clearly below threshold.
+    MAYBE - borderline; surface to human review (Wave 3 pipeline behavior:
+            any FAIL -> rejected, all PASS -> score normally, any MAYBE
+            with no FAIL -> score but flag for manual review).
+    """
+
+    PASS = "pass"
+    FAIL = "fail"
+    MAYBE = "maybe"
+
+
 # ---------------------------------------------------------------------------
 # Strict base (shared by all pipeline models)
 # ---------------------------------------------------------------------------
@@ -103,7 +118,7 @@ class GateResult(_StrictModel):
     """Result of a single hard gate evaluation."""
 
     gate: str
-    passed: bool
+    verdict: GateVerdict
     reason: str
 
 
@@ -155,8 +170,9 @@ class ParsedListing(_StrictModel):
 class ScoredListing(_StrictModel):
     """Stage 3: ParsedListing + scoring results.
 
-    Enforces consistency: if any gate failed, ``rejected`` must be True
-    and ``rejection_reason`` must be provided.
+    Enforces consistency: if any gate has verdict FAIL, ``rejected`` must
+    be True and ``rejection_reason`` must be provided.  ``needs_review``
+    is set when any gate returned MAYBE (but none FAIL).
     """
 
     parsed_listing: ParsedListing
@@ -167,12 +183,17 @@ class ScoredListing(_StrictModel):
     response_sla: ResponseSLA
     rejected: bool = False
     rejection_reason: str | None = None
+    needs_review: bool = False
 
     @model_validator(mode="after")
     def _check_gate_consistency(self) -> ScoredListing:
-        has_failed_gate = any(not gr.passed for gr in self.gate_results)
+        has_failed_gate = any(
+            gr.verdict == GateVerdict.FAIL for gr in self.gate_results
+        )
         if has_failed_gate and not self.rejected:
-            failed = [gr.gate for gr in self.gate_results if not gr.passed]
+            failed = [
+                gr.gate for gr in self.gate_results if gr.verdict == GateVerdict.FAIL
+            ]
             msg = (
                 f"Gate(s) {failed} failed but rejected=False. "
                 "Set rejected=True with a rejection_reason."
