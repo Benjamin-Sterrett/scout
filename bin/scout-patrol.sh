@@ -38,7 +38,9 @@ PROMPT=$(cat "$PROMPT_FILE")
 # Run claude headlessly with chrome flag
 # --print: non-interactive, outputs result and exits
 # --chrome: enables claude-in-chrome MCP
-# --max-turns 30: enough for a full patrol cycle
-"$CLAUDE" --print --chrome --permission-mode bypassPermissions "$PROMPT" >> "$LOG_FILE" 2>&1
+# --allowedTools: restrict to only tools the patrol needs (security hardening)
+"$CLAUDE" --print --chrome --permission-mode bypassPermissions \
+  --allowedTools "mcp__claude-in-chrome__navigate mcp__claude-in-chrome__computer mcp__claude-in-chrome__get_page_text mcp__claude-in-chrome__find mcp__claude-in-chrome__form_input mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__read_page mcp__claude-in-chrome__javascript_tool Bash(security:*) Bash(curl:*) Read Write" \
+  "$PROMPT" >> "$LOG_FILE" 2>&1
 
 echo "--- Patrol complete $(date '+%Y-%m-%d %H:%M:%S') ---" >> "$LOG_FILE"
