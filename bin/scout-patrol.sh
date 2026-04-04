@@ -48,7 +48,7 @@ cd "$PATROL_WORKDIR"
 "$CLAUDE" --print --chrome --permission-mode bypassPermissions \
   --setting-sources user \
   --add-dir /Users/benjaminsterrett/Projects/scout/data \
-  --allowedTools "mcp__claude-in-chrome__navigate mcp__claude-in-chrome__computer mcp__claude-in-chrome__get_page_text mcp__claude-in-chrome__find mcp__claude-in-chrome__form_input mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__read_page mcp__claude-in-chrome__javascript_tool Bash(security:*) Bash(curl:*) Read Write" \
+  --allowedTools "mcp__claude-in-chrome__navigate mcp__claude-in-chrome__computer mcp__claude-in-chrome__get_page_text mcp__claude-in-chrome__find mcp__claude-in-chrome__form_input mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__read_page mcp__claude-in-chrome__javascript_tool Bash(/Users/benjaminsterrett/Projects/scout/bin/scout-telegram.sh:*) Read Write" \
   <<< "$PROMPT" >> "$LOG_FILE" 2>&1
 
 echo "--- Patrol complete $(date '+%Y-%m-%d %H:%M:%S') ---" >> "$LOG_FILE"
