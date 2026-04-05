@@ -33,7 +33,9 @@ if [ ! -f "$PROMPT_FILE" ]; then
     exit 1
 fi
 
-PROMPT=$(cat "$PROMPT_FILE")
+PROMPT="Current date/time: $(TZ=America/Chicago date '+%Y-%m-%d %I:%M %p CT')
+
+$(cat "$PROMPT_FILE")"
 
 # Run claude headlessly with chrome flag
 # --print: non-interactive, outputs result and exits
